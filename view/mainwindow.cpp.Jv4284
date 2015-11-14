@@ -1,0 +1,379 @@
+#include "view/mainwindow.h"
+#include "ui_mainwindow.h"
+#include "QDebug"
+#include "QFileDialog"
+#include "QToolButton"
+#include <typeinfo>
+
+// Globale Variablen
+Clock  *clocky;
+ControlUnit *controlUnit;
+InstructionRegister *instructionRegister;
+ProgramCounter *programCounter;
+RandomAccessMemory *ram;
+Accumulator *accumulator;
+Multiplexer *multiplexer;
+ArithmeticLogicalUnit *alu;
+ArrowTaktSteurwerk *arrowTaktSteuerwerk;
+ArrowIRSteuerwerk *arrowIrSteuerwerk;
+ArrowIrProgramcounter *arrowIrPC;
+ArrowIrMultiplexer *arrowIrMulti;
+ArrowPcMultiplexer *arrowPcMulti;
+ArrowMultiplexerRam *arrowMultiRam;
+ArrowAluRam *arrowAluRam;
+ArrowAluAccu *arrowAluAccu;
+ArrowAccuAlu *arrowAccuAlu;
+ArrowRamAlu *arrowRamAlu;
+ArrowRamIr *arrowRamIr;
+ArrowAccuPc *arrowAccuPc;
+ArrowWriteRam *arrowWriteRam;
+ArrowIncPc *arrowIncPc;
+ArrowSetPc *arrowSetPc;
+ArrowAddrIsIR *arrowAddrIsIR;
+ArrowSetIr *arrowSetIr;
+ArrowSetAccu *arrowSetAccu;
+ArrowAluCin *arrowAluCin;
+ArrowAluMode *arrowAluMode;
+ArrowAlu3 *arrowAlu3;
+ArrowAlu2 *arrowAlu2;
+ArrowAlu1 *arrowAlu1;
+ArrowAlu0 *arrowAlu0;
+
+
+MainWindow::MainWindow(QWidget *parent):QMainWindow(parent),ui(new Ui::MainWindow)
+{            
+    initializeWindow();
+
+    setGraphicsScene();
+
+    createElements();  
+
+    this->loaded = true;
+}
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
+
+void MainWindow::on_actionLoadFile_triggered()
+{
+    QString filename = QFileDialog::getOpenFileName(this,"Datei laden","","Toy Programm (*.toy)");
+    qDebug() << filename;
+    if(!filename.isEmpty()){
+        Message msg(Message::FileOpen);
+        msg.content = &filename;
+        emit(sendMessage(msg));
+
+        //MORGEN FRAGEN !! WEGEN WAS PASSIEREN SOLL WENN ERROR!!!
+        ui->actionStep->setEnabled(true);
+        ui->actionStep_Mode->setChecked(true);
+    }
+}
+
+void MainWindow::on_actionDokumentation_triggered()
+{
+    qDebug() << "Start: MainWindow::on_actionDokumentation_triggered()";
+    QDesktopServices::openUrl(QUrl("file:///Users/Dani/Desktop/Toy-Processor/toyProcessor_2/ToyProcessor2/docs/DokumentationToy.pdf"));
+    qDebug() << "End: MainWindow::on_actionDokumentation_triggered()";
+}
+
+void MainWindow::initializeWindow()
+{
+    qDebug() << "Start: MainWindow::initializeWindow()";
+
+    this->loaded = false;
+    ui->setupUi(this);
+    this->setWindowTitle("Toy Processor");
+    this->setMinimumWidth(800);
+    this->setMinimumHeight(600);
+    this->showMaximized();
+
+    // Set Ram Content Table
+    ui->tableWidget->setColumnCount(1);
+    ui->tableWidget->setRowCount(4096);
+    ui->tableWidget->setColumnWidth(1,10);   
+
+    // Hide Modus menu
+    ui->menuModus->menuAction()->setVisible(false);
+
+    // Instert Dropdownmenu to toolbar
+    QToolButton* toolButton = new QToolButton();
+    toolButton->setText("Modus ");
+    toolButton->setMenu(ui->menuModus);
+    toolButton->setPopupMode(QToolButton::InstantPopup);
+    ui->toolBar->addWidget(toolButton);
+
+
+    qDebug() << "End: MainWindow::initializeWindow()";
+}
+
+void MainWindow::setGraphicsScene()
+{
+    qDebug() << "Start: MainWindow::setGraphicsScene()";
+
+    this->scene = new QGraphicsScene(this);
+    ui->graphicsView->setScene(scene);
+
+    qDebug() << "End: MainWindow::setGraphicsScene()";
+}
+
+void MainWindow::createElements()
+{
+    qDebug() << "Start: MainWindow::createElements()";
+
+    clocky = new Clock();
+    scene->addItem(clocky);
+
+    controlUnit = new ControlUnit();
+    scene->addItem(controlUnit);
+
+    instructionRegister = new InstructionRegister();
+    scene->addItem(instructionRegister);
+
+    programCounter = new ProgramCounter();
+    scene->addItem(programCounter);
+
+    ram = new RandomAccessMemory();
+    scene->addItem(ram);
+
+    accumulator = new Accumulator();
+    scene->addItem(accumulator);
+
+    multiplexer = new Multiplexer();
+    scene->addItem(multiplexer);
+
+    alu = new ArithmeticLogicalUnit();
+    scene->addItem(alu);
+
+    arrowTaktSteuerwerk = new ArrowTaktSteurwerk();
+    scene->addItem(arrowTaktSteuerwerk);
+
+    arrowIrSteuerwerk = new ArrowIRSteuerwerk();
+    scene->addItem(arrowIrSteuerwerk);
+
+    arrowIrPC = new ArrowIrProgramcounter();
+    scene->addItem(arrowIrPC);
+
+    arrowIrMulti = new ArrowIrMultiplexer();
+    scene->addItem(arrowIrMulti);
+
+    arrowPcMulti = new ArrowPcMultiplexer();
+    scene->addItem(arrowPcMulti);
+
+    arrowMultiRam = new ArrowMultiplexerRam();
+    scene->addItem(arrowMultiRam);
+
+    arrowAluRam = new ArrowAluRam();
+    scene->addItem(arrowAluRam);
+
+    arrowAluAccu = new ArrowAluAccu();
+    scene->addItem(arrowAluAccu);
+
+    arrowAccuAlu = new ArrowAccuAlu();
+    scene->addItem(arrowAccuAlu);
+
+    arrowRamIr = new ArrowRamIr();
+    scene->addItem(arrowRamIr);
+
+    arrowRamAlu = new ArrowRamAlu();
+    scene->addItem(arrowRamAlu);    
+
+    arrowAccuPc = new ArrowAccuPc();
+    scene->addItem(arrowAccuPc);
+
+    arrowWriteRam = new ArrowWriteRam();
+    scene->addItem(arrowWriteRam);
+
+    arrowIncPc = new ArrowIncPc();
+    scene->addItem(arrowIncPc);
+
+    arrowSetPc = new ArrowSetPc();
+    scene->addItem(arrowSetPc);
+
+    arrowAddrIsIR = new ArrowAddrIsIR();
+    scene->addItem(arrowAddrIsIR);
+
+    arrowSetIr = new ArrowSetIr();
+    scene->addItem(arrowSetIr);
+
+    arrowSetAccu = new ArrowSetAccu();
+    scene->addItem(arrowSetAccu);
+
+    arrowAluCin = new ArrowAluCin();
+    scene->addItem(arrowAluCin);
+
+    arrowAluMode = new ArrowAluMode();
+    scene->addItem(arrowAluMode);
+
+    arrowAlu3 = new ArrowAlu3();
+    scene->addItem(arrowAlu3);
+
+    arrowAlu2 = new ArrowAlu2();
+    scene->addItem(arrowAlu2);
+
+    arrowAlu1 = new ArrowAlu1();
+    scene->addItem(arrowAlu1);
+
+    arrowAlu0 = new ArrowAlu0();
+    scene->addItem(arrowAlu0);
+
+    qDebug() << "End: MainWindow::createElements()";
+}
+
+void MainWindow::resizeEvent(QResizeEvent *e)
+{
+    qDebug()<< "Start: MainWindow::resizeEvent";
+    if(loaded){
+        QRectF bRect = ui->graphicsView->scene()->itemsBoundingRect();
+        bRect.setX(bRect.x()-50);
+        bRect.setY(bRect.y()-70);
+        bRect.setWidth(bRect.width()+50);
+        bRect.setHeight(bRect.height()+60);
+        ui->graphicsView->fitInView(bRect,Qt::KeepAspectRatio);
+    }
+    qDebug()<< "End: MainWindow::resizeEvent";
+}
+
+void MainWindow::deactivateAll()
+{
+    //Deactivate Arrows
+    arrowTaktSteuerwerk->activate(false);
+    arrowIrSteuerwerk->activate(false);
+    arrowIrPC->activate(false);
+    arrowIrMulti->activate(false);
+    arrowPcMulti->activate(false);
+    arrowMultiRam->activate(false);
+    arrowAluRam->activate(false);
+    arrowAluAccu->activate(false);
+    arrowAccuAlu->activate(false);
+    arrowRamAlu->activate(false);
+    arrowRamIr->activate(false);
+    arrowAccuPc->activate(false);
+
+    arrowWriteRam->activate(false);
+    arrowIncPc->activate(false);
+    arrowSetPc->activate(false);
+    arrowAddrIsIR->activate(false);
+    arrowSetIr->activate(false);
+    arrowSetAccu->activate(false);
+    arrowAluCin->activate(false);
+    arrowAluMode->activate(false);
+    arrowAlu3->activate(false);
+    arrowAlu2->activate(false);
+    arrowAlu1->activate(false);
+    arrowAlu0->activate(false);
+}
+
+void MainWindow::notify(Message& msg){
+   switch(msg.type)
+   {
+   case Message::AddrIsIR:
+       deactivateAll();
+       arrowIrMulti->activate(true);
+       arrowMultiRam->activate(true);
+       break;
+
+   case Message::AddrIsPC:
+       deactivateAll();
+       arrowPcMulti->activate(true);
+       arrowMultiRam->activate(true);
+       break;
+
+   case Message::AlluIsAccu:
+       deactivateAll();
+       arrowAccuAlu->activate(true);
+       break;
+
+   case Message::WriteRAM:
+       deactivateAll();
+       arrowAluRam->activate(true);
+       break;
+
+   case Message::SetIR:
+       deactivateAll();
+       arrowRamIr->activate(true);
+       arrowIrSteuerwerk->activate(true);
+       break;
+
+   case Message::IncPC:
+       deactivateAll();
+       break;
+
+   case Message::AluIsRAM:
+       deactivateAll();
+       arrowRamAlu->activate(true);
+       break;
+
+   case Message::SetAccu:
+       deactivateAll();       
+       arrowAluAccu->activate(true);
+       break;
+
+   case Message::SetPC:
+       deactivateAll();
+       arrowAccuPc->activate(true);
+       arrowIrPC->activate(true);
+       break;
+
+   case Message::AluWork:
+       deactivateAll();
+       arrowRamAlu->activate(true);
+       arrowAccuAlu->activate(true);
+       break;
+
+   case Message::ClockCircle:
+       deactivateAll();
+       arrowTaktSteuerwerk->activate(true);
+       break;
+
+   case  Message::RAMwasSet:
+       qDebug() <<"RAMWASSET";
+       unsigned short *ram = (unsigned short*)msg.content;
+       for(int i=0; i<4096; i++){
+           ui->tableWidget->setItem(i,0,new QTableWidgetItem(QString::number(ram[i])));
+       }
+
+       break;
+   }
+
+}
+
+void MainWindow::on_actionStart_triggered()
+{    
+    //Message msg(Message::???);
+    //emit(sendMessage(msg));
+}
+
+void MainWindow::on_actionStop_triggered()
+{
+
+
+}
+
+void MainWindow::on_actionStep_Mode_triggered()
+{
+    if(ui->actionStep_Mode->isChecked())
+        ui->actionAutomaticMode->setEnabled(false);
+    else
+        ui->actionAutomaticMode->setEnabled(true);
+}
+
+void MainWindow::on_actionStep_triggered()
+{
+    if(ui->actionStep_Mode->isChecked() && ui->actionStep_Mode->isEnabled()){
+       Message msg(Message::SingleStep);
+       emit(sendMessage(msg));
+    }
+    qDebug() << "Start";
+    scene->update();
+
+}
+
+void MainWindow::on_actionAutomaticMode_triggered()
+{
+    if(ui->actionAutomaticMode->isChecked())
+        ui->actionStep_Mode->setEnabled(false);
+    else
+        ui->actionStep_Mode->setEnabled(true);
+}
