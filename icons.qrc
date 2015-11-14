@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/new/prefix1">
+        <file>icons/application-exit-4.ico</file>
+        <file>icons/cpu.ico</file>
+        <file>icons/document-open-2.ico</file>
+        <file>icons/document-properties.ico</file>
+        <file>icons/media-seek-forward-6.ico</file>
+        <file>icons/play.ico</file>
+        <file>icons/reset.ico</file>
+        <file>icons/stop.ico</file>
+    </qresource>
+</RCC>
